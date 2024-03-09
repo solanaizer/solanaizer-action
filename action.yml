@@ -21,10 +21,8 @@ runs:
 
   - name: Comment on PR
     uses: actions/github-script@v7
-    env:
-      OPENAPI_TOKEN: ${{ inputs.openapi-token }}
     with:
-      github-token: ${{secrets.GITHUB_TOKEN}}
+      github-token: ${{ inputs.openapi-token }}
       script: |
         const execSync = require("child_process").execSync;
         const raw = execSync("python ./solanaizer.py", { encoding: "utf-8" });
