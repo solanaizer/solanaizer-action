@@ -22,8 +22,9 @@ runs:
 
   - name: Comment on PR
     uses: actions/github-script@v7
-    with:
+    env:
       OPENAPI_TOKEN: ${{ inputs.openapi-token }}
+    with:
       script: |
         console.log('📜 SOLANAIZER...')
         const execSync = require("child_process").execSync;
