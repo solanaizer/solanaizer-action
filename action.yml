@@ -12,16 +12,12 @@ runs:
   - uses: actions/checkout@v4
   - uses: actions/setup-python@v5
     with:
-      python-version: '3.9'
-      cache: 'pip'
+      python-version: '3.x'
 
   - shell: bash
     run: |
       python -m pip install --upgrade pip
       python -m pip install requests pathlib
-      echo $(pwd)
-      echo $(ls)
-      echo $(find .)
 
 
   - name: Comment on PR
@@ -29,6 +25,7 @@ runs:
     with:
       OPENAPI_TOKEN: ${{ inputs.openapi-token }}
       script: |
+        console.log('📜 SOLANAIZER...')
         const execSync = require("child_process").execSync;
         const raw = execSync("python ${{ github.action_path }}/solanaizer.py", { encoding: "utf-8" });
         
