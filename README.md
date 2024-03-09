@@ -45,7 +45,7 @@ Please raise an issue for suggestions and any bugs related to the Action.
 
 This is an experimental auditing tool built using AI. **USE AT YOUR RISK**
 
-## Team 👨🏻‍💻👨🏻‍💻👨🏻‍💻👨🏻‍💻
+## Team 👨🏻‍💻👨🏻‍💻👨🏻‍💻👨🏻‍💻👨🏻‍💻
 
 - [Alex Straw](https://github.com/alex-straw) (Engineer)
 - [Dimitris Dinis Gridian](https://github.com/DinisDimitris) (Engineer)
