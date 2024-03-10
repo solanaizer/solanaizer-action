@@ -8,7 +8,7 @@ client = OpenAI()
 
 
 def inference_gpt35_turbo(code_snippet, prompt, filename, client=client) -> str:
-    print(f"Running inference for GPT-3.5-turbo for {filename}")
+    # print(f"Running inference for GPT-3.5-turbo for {filename}")
 
     content = prompt.format(code_snippet)
 
@@ -38,5 +38,6 @@ if __name__ == "__main__":
             inference_gpt35_turbo(code_snippet, prompt=prompt, filename=filename)
         )
         json_output = map_class_with_output(exploit_class)
+        json_output["filename"] = filename
 
         print(json_output)

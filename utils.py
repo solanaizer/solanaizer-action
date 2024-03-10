@@ -13,7 +13,7 @@ def get_exploits() -> list:
             contents = "".join(contents)
             example_exploits.append(contents)
 
-    print("We have {} example exploits.".format(len(example_exploits)))
+    # print("We have {} example exploits.".format(len(example_exploits)))
 
     return filenames, example_exploits
 
@@ -90,12 +90,10 @@ def map_class_with_output(class_number):
         },
     }
 
-    return str(
-        vulnerability_map.get(
-            class_number,
-            {
-                "title": "Unknown vulnerability.",
-                "description": "The vulnerability class number provided does not match any known vulnerabilities.",
-            },
-        )
+    return vulnerability_map.get(
+        class_number,
+        {
+            "title": "Unknown vulnerability.",
+            "description": "The vulnerability class number provided does not match any known vulnerabilities.",
+        },
     )
