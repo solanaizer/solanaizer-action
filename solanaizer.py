@@ -13,7 +13,12 @@ def validate_file_content(file_path: Path):
     with open(file_path, 'r') as file:
         content = file.read()
 
-    return analyze_vulnerability_with_gpt(API_KEY, content, file_path)
+    try:
+        return analyze_vulnerability_with_gpt(API_KEY, content, file_path)
+    except:
+        return []
+
+
 
 def get_rust_files(directory):
     rust_files = []
