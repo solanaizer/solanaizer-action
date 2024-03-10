@@ -37,6 +37,6 @@ if __name__ == "__main__":
         exploit_class = extract_class(
             inference_gpt35_turbo(code_snippet, prompt=prompt, filename=filename)
         )
-        print(exploit_class)
         json_output = map_class_with_output(exploit_class)
+
         print(json_output)
