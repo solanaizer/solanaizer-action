@@ -4,21 +4,23 @@ from pathlib import Path
 
 
 class ChatRequest:
+    """Request for AI model"""
     def __init__(self, model, messages):
         self.model = model
         self.messages = messages
 
-    def toJSON(self):
-        return json.dumps(self, default=lambda o: o.__dict__, 
-            sort_keys=True, indent=4)
+    def to_json(self):
+        """Converting to JSON"""
+        return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
 
 
-def analyze_vulnerability_with_gpt(api_key, file_content, filename: Path):
+def analyze(api_key, file_content, filename: Path):
+    """Analysing the contracts & returning vulnerabilities"""
     url = "https://api.openai.com/v1/chat/completions"
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {api_key}",
-        "Accept": "application/json"
+        "Accept": "application/json",
     }
 
     prompt = f"""
@@ -40,21 +42,22 @@ You are an Solana smart contract auditor. You are an expert at finding vulnerabi
 NEVER EVER EVER RETURN ANYTHING ELSE THAN JSON. DON'T RETURN MARKDOWN
 """
 
-
-
     chat_request = ChatRequest(
-        model="gpt-3.5-turbo",
-        messages= [{"role": "user", "content" : prompt}]
+        model="gpt-3.5-turbo", messages=[{"role": "user", "content": prompt}]
     )
 
-    response = requests.post(url, headers=headers, data=chat_request.toJSON())
+    response = requests.post(url, headers=headers, data=chat_request.to_json())
 
     if response.ok:
         response_json = response.json()
-        response_content = response_json["choices"][0]["message"]["content"].replace("```json", "").replace("```", "")
-        if (response_content != "" or response_content != None or response_content != []):
+        response_content = (
+            response_json["choices"][0]["message"]["content"]
+            .replace("```json", "")
+            .replace("```", "")
+        )
+        if response_content != "" or response_content != None or response_content != []:
             parsed = json.loads(response_content)
-            
+
             for item in parsed:
                 item["filename"] = filename.relative_to(".").__str__()
 
@@ -63,7 +66,9 @@ NEVER EVER EVER RETURN ANYTHING ELSE THAN JSON. DON'T RETURN MARKDOWN
             return []
     else:
         if response.status_code == 403:
-            error_message = "Authorization failed. Please check your API key permissions."
+            error_message = (
+                "Authorization failed. Please check your API key permissions."
+            )
         elif response.status_code == 429:
             error_message = "Rate limit exceeded. Please try again later."
         elif response.status_code == 400:
@@ -71,4 +76,3 @@ NEVER EVER EVER RETURN ANYTHING ELSE THAN JSON. DON'T RETURN MARKDOWN
         else:
             error_message = f"Failed to get a valid response from OpenAI: {response.status_code} - {response.text}"
         raise IOError(error_message)
-

@@ -1,5 +1,14 @@
 class VulnerabilityCheck:
-    def __init__(self, id, title, severity, pattern, safe_pattern=None, description='', suggested_fix=''):
+    def __init__(
+        self,
+        id,
+        title,
+        severity,
+        pattern,
+        safe_pattern=None,
+        description="",
+        suggested_fix="",
+    ):
         self.id = id
         self.title = title
         self.severity = severity
@@ -13,7 +22,18 @@ class VulnerabilityCheck:
 
 
 class VulnerabilityResult:
-    def __init__(self, vulnerability_id, file, title, severity, status, description, fix, persistence_of_safe_pattern, safe_pattern=None):
+    def __init__(
+        self,
+        vulnerability_id,
+        file,
+        title,
+        severity,
+        status,
+        description,
+        fix,
+        persistence_of_safe_pattern,
+        safe_pattern=None,
+    ):
         self.vulnerability_id = vulnerability_id
         self.file = file
         self.title = title
@@ -26,5 +46,3 @@ class VulnerabilityResult:
 
     def __str__(self):
         return f"vulnerability_id={self.vulnerability_id}, file={self.file}, title={self.title}, severity={self.severity}, status={self.status}, description={self.description}, fix={self.fix}, persistence_of_safe_pattern={self.persistence_of_safe_pattern}, safe_pattern={self.safe_pattern})\n"
-
-
