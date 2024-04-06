@@ -1,0 +1,126 @@
+id,description,insecure_code,secure_code
+0,"The vulnerability arises from missing a signer check for an account, which could allow unauthorized actions.","
+authority: AccountInfo<'info>,
+","
+authority: Signer<'info>,
+"
+1,"The insecure code fails to properly check that the caller is the owner of the token before proceeding with operations, leading to a potential vulnerability where unauthorized users could interact with the contract as if they were the owner.","
+if authority.key != token.owner {
+    return Err(ProgramError::InvalidAccountData);
+}
+","
+#[account(constraint = authority.key == &token.owner)]
+"
+2,"The vulnerability arises from the use of incorrect `seeds` for generating a Program Derived Address (PDA), thereby potentially allowing unauthorized token withdrawal or interaction with the wrong PDA.","
+let seeds = &[ctx.accounts.pool.mint.as_ref(), &[ctx.accounts.pool.bump]];
+","
+let seeds = &[ctx.accounts.pool.withdraw_destination.as_ref(), &[ctx.accounts.pool.bump]];
+"
+3,"The vulnerability involves incorrect seed canonicalization when creating a program address. Insecure code uses a provided `bump` seed that might not match the bump seed calculated by the Solana runtime, leading to potential bypass of security checks or other unintended behaviors.","
+if address != ctx.accounts.data.key() {
+    return Err(ProgramError::InvalidArgument);
+}
+","
+let (_, expected_bump) = Pubkey::find_program_address(&[key.to_le_bytes().as_ref()], ctx.program_id);
+if expected_bump != bump {
+    return Err(ProgramError::InvalidArgument);
+}
+"
+4,"The ""TypeCosplay"" vulnerability involves the absence of a check to ensure an account's data matches the expected account type or discriminant, allowing an attacker to pass an account of an incorrect type.","
+if ctx.accounts.user.owner != ctx.program_id {
+    return Err(ProgramError::IllegalOwner);
+}
+","
+if ctx.accounts.user.owner != ctx.program_id {
+    return Err(ProgramError::IllegalOwner);
+}
+if user.discriminant != AccountDiscriminant::User {
+    return Err(ProgramError::InvalidAccountData);
+}
+"
+5,DuplicateMutableAccounts,"
+let user_a = &mut ctx.accounts.user_a;
+let user_b = &mut ctx.accounts.user_b;
+","
+if ctx.accounts.user_a.key() == ctx.accounts.user_b.key() {
+    return Err(ProgramError::InvalidArgument)
+}
+let user_a = &mut ctx.accounts.user_a;
+let user_b = &mut ctx.accounts.user_b;
+"
+6,"The vulnerability arises from not verifying if an account provided as 'authority' in a Solana smart contract function has actually signed the transaction, potentially allowing unauthorized actions.","
+msg!(""GM {}"", authority.key().to_string());
+","
+if !authority.is_signer {
+    return Err(ProgramError::MissingRequiredSignature);
+}
+msg!(""GM {}"", authority.key().to_string());
+"
+7,Not verifying if an account provided to a smart contract is the expected system account could lead to malicious actors exploiting the contract by providing incorrect accounts. This issue is particularly critical when dealing with system accounts like the Rent sysvar in Solana.,"
+msg!(""Rent Key -> {}"", rent.key().to_string());
+","
+require_eq!(rent.key(), sysvar::rent::ID);
+msg!(""Rent Key -> {}"", rent.key().to_string());
+"
+8,"The vulnerability arises from not properly validating the owner of a token account in smart contracts, which could allow unauthorized access to sensitive actions or information.","
+if authority.key != &token.owner {
+    return Err(ProgramError::InvalidAccountData);
+}
+","
+if token.owner != &spl_token::ID {
+    return Err(ProgramError::InvalidAccountData);
+}
+if authority.key != &token.owner {
+    return Err(ProgramError::InvalidAccountData);
+}
+"
+9,"The vulnerability arises from not checking if the called program in a Cross-Program Invocation (CPI) is the intended one, allowing potential arbitrary executions by malicious actors.","
+fn cpi(token_program: AccountInfo, source: AccountInfo, destination: AccountInfo, authority: AccountInfo, amount: u64) {
+    invoke(&transfer(token_program.key, source.key, destination.key, authority.key, &[], amount), &[source, destination, authority]);
+}
+","
+fn cpi_secure(token_program: AccountInfo, source: AccountInfo, destination: AccountInfo, authority: AccountInfo, amount: u64) {
+    if &TOKEN_PROGRAM_ID != token_program.key {
+        panic!(""Incorrect program ID"");
+    }
+    invoke(&transfer(token_program.key, source.key, destination.key, authority.key, &[], amount), &[source, destination, authority]);
+}
+"
+10,"The vulnerability revolves around a smart contract's improper account closure process. The insecure code fails to properly zero out the data of a closed account, leaving residual data that could be potentially exploited or lead to inconsistent state representations. Ensuring the data of an account is cleared and marked with a discriminator indicating closure is crucial for security and data integrity.","
+let dest_starting_lamports = destination.lamports();
+*destination.lamports.borrow_mut() = dest_starting_lamports.checked_add(account.lamports()).unwrap();
+*account.lamports.borrow_mut() = 0;
+","
+let dest_starting_lamports = destination.lamports();
+*destination.lamports.borrow_mut() = dest_starting_lamports.checked_add(account.lamports()).unwrap();
+*account.lamports.borrow_mut() = 0;
+let mut data = account.try_borrow_mut_data()?;
+for byte in data.iter_mut() {
+    *byte = 0;
+}
+let mut cursor = Cursor::new(&mut data);
+cursor.write_all(&CLOSED_ACCOUNT_DISCRIMINATOR).unwrap();
+"
+11,"The vulnerability is related to the improper initialization of smart contracts, allowing for the possibility of reinitialization attacks, where an attacker might reinitialize already initialized accounts, or create and not properly initialize accounts, potentially compromising the contract's security.","
+let mut user = User::try_from_slice(&data).unwrap();
+user.authority = authority;
+user.serialize(&mut data).unwrap();
+","
+let mut user = User::try_from_slice(&data).unwrap();
+if user.discriminator {
+    return Err(ProgramError::InvalidAccountData);
+}
+user.authority = authority;
+user.discriminator = true;
+user.serialize(&mut data).unwrap();
+"
+12,"The vulnerability arises from not verifying if The caller (authority) is The actual owner of The token account prior to executing actions or revealing sensitive information, which can lead to unauthorized access or information disclosure.","
+    let token = SplTokenAccount::unpack(&token.data.borrow())?;
+    msg!(""Your account balance is: {}"", token.amount);
+    ","
+    let token = SplTokenAccount::unpack(&token.data.borrow())?;
+    if authority.key != &token.owner {
+        return Err(ProgramError::InvalidAccountData);
+    }
+    msg!(""Your account balance is: {}"", token.amount);
+    "

@@ -1,6 +1,10 @@
+import csv
+
 import requests
 import json
 from pathlib import Path
+
+from txtai import Embeddings
 
 
 class ChatRequest:
@@ -23,6 +27,8 @@ def analyze(api_key, file_content, filename: Path):
         "Accept": "application/json",
     }
 
+    rag = search_embeddings(file_content)
+
     prompt = f"""
 [no prose]
 You need to answer at all time using a JSON object of this format:
@@ -35,12 +41,16 @@ The filename key should contain the name of the module.
 
 You are an Solana smart contract auditor. You are an expert at finding vulnerabilities that can be exploited by bad people.
 
+The code to audit
 ```rs
 '{file_content}'
 ```
 
-NEVER EVER EVER RETURN ANYTHING ELSE THAN JSON. DON'T RETURN MARKDOWN
-"""
+The below was found in the vector database and may provide a useful strategy to find issues in the code above
+
+{rag}
+
+NEVER EVER EVER RETURN ANYTHING ELSE THAN JSON. DON'T RETURN MARKDOWN"""
 
     chat_request = ChatRequest(
         model="gpt-3.5-turbo", messages=[{"role": "user", "content": prompt}]
@@ -76,3 +86,73 @@ NEVER EVER EVER RETURN ANYTHING ELSE THAN JSON. DON'T RETURN MARKDOWN
         else:
             error_message = f"Failed to get a valid response from OpenAI: {response.status_code} - {response.text}"
         raise IOError(error_message)
+
+
+def get_vulnerabilities():
+    """
+    Read the csv of vulnerabilities which were used to build up the TxtAi embeddings.
+    We use this to access the related code and descriptions by id (in search_embeddings)
+    """
+    # The path to your CSV file
+    csv_file_path = 'vulnerabilities.csv'
+
+    # Initialize an empty list to hold the JSON structure
+    json_list = []
+
+    try:
+        # Open the CSV file for reading
+        with open(csv_file_path, mode='r', encoding='utf-8') as csv_file:
+            # Use the csv.DictReader to automatically use the first row as fieldnames
+            csv_reader = csv.DictReader(csv_file)
+
+            # Loop over each row in the CSV file
+            for idx, row in enumerate(csv_reader, start=1):
+                # Convert the current row to a dictionary, and add an 'id' field
+                row_dict = {
+                    'id': idx,
+                    'secure_code': row['secure_code'],
+                    'description': row['description'],
+                    'insecure_code': row['insecure_code']
+                }
+
+                json_list.append(row_dict)
+
+        return json_list
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+
+def search_embeddings(query):
+    """
+    Scan the vector database for any related vulnerabilities using retrieval augmented generation
+    and TxtAi Embeddings
+    """
+    embeddings = Embeddings()
+    embeddings.load("vulnerabilities-index")
+    results = embeddings.search(query, limit=1)  # limit=1 to get the most relevant result
+
+    data = get_vulnerabilities()
+
+    if results:
+        most_relevant_id, score = results[0]
+        print(f"Most Relevant ID: {most_relevant_id}, Score: {score}")
+
+        most_relevant_data = next(item for item in data if item['id'] == most_relevant_id)
+
+        print(f"RAG score: {score}")
+
+        rag_string = f"""Description: {most_relevant_data['description']}
+
+Example insecure code which may help: 
+```rs
+{most_relevant_data['insecure_code']}
+```
+
+Example secure code which fixes the above (if needed):
+```rs
+{most_relevant_data['secure_code']}
+```"""
+        return rag_string
+    else:
+        raise ValueError('no rag data was retrieved')
